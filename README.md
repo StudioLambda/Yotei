@@ -1,4 +1,4 @@
-# Yotei
+# Yotei
 
 Yotei is a powerful and flexible task scheduling library for Go, designed to handle a variety of concurrent tasks with ease. Utilizing a Weighted Round Robin (WRR) algorithm, this scheduler allows for efficient distribution of tasks among multiple workers, with support for custom task weights (priorities), sequential/concurrent tasks, and durations. Perfect for high-performance applications requiring fine-grained control over task execution.
 
@@ -17,6 +17,6 @@ Yotei is a powerful and flexible task scheduling library for Go, designed to han
 go get github.com/studiolambda/yotei
 ```
 
-## Documentation
+## Documentation
 
 [Official Documentation](https://pkg.go.dev/github.com/studiolambda/yotei)
