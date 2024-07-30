@@ -46,7 +46,8 @@ func TestThreeTasks(t *testing.T) {
 			Concurrent(),
 	}
 
-	scheduler.Start(tasks)
+	scheduler.Add(tasks...)
+	scheduler.Start()
 	time.Sleep(2 * time.Millisecond)
 	scheduler.Stop()
 
@@ -93,7 +94,8 @@ func TestItDoesNotRunLockedTasks(t *testing.T) {
 			Lasts(10 * time.Millisecond),
 	}
 
-	scheduler.Start(tasks)
+	scheduler.Add(tasks...)
+	scheduler.Start()
 	time.Sleep(100 * time.Millisecond)
 	scheduler.Stop()
 

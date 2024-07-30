@@ -183,7 +183,7 @@ func (scheduler *Scheduler) worker() {
 // If the task list contains no tasks to run (len == 0) no workers will be
 // spawned, a warning will be emitted using the [Scheduler.logger] and
 // the scheduler will remain in a running state.
-func (scheduler *Scheduler) Start(tasks Tasks) {
+func (scheduler *Scheduler) Start() {
 	if scheduler.IsRunning() {
 		return
 	}
@@ -191,7 +191,6 @@ func (scheduler *Scheduler) Start(tasks Tasks) {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
 
-	scheduler.tasks = tasks
 	scheduler.quit = make(chan struct{})
 
 	scheduler.logger.Info(
