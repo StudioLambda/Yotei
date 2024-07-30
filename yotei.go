@@ -89,17 +89,16 @@ func (scheduler *Scheduler) Has(task *Task) bool {
 	return false
 }
 
-// Removes a task from the scheduler. Since no tasks
-// can be duplicated in the scheduler, Remove stops
-// when a match is found.
-func (scheduler *Scheduler) Remove(task *Task) {
+// Removes the given tasks from the scheduler.
+func (scheduler *Scheduler) Remove(tasks ...*Task) {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
 
 	for i, t := range scheduler.tasks {
-		if t == task {
-			scheduler.tasks = append(scheduler.tasks[:i], scheduler.tasks[i+1:]...)
-			return
+		for _, task := range tasks {
+			if t == task {
+				scheduler.tasks = append(scheduler.tasks[:i], scheduler.tasks[i+1:]...)
+			}
 		}
 	}
 }
