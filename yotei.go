@@ -58,7 +58,7 @@ func NewScheduler(workers uint64, logger *slog.Logger) *Scheduler {
 }
 
 // Adds a task into the scheduler. If the task
-// was already in the scheduler it will do nothing.
+// was already in the scheduler it will ignore it.
 func (scheduler *Scheduler) Add(tasks ...*Task) {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
