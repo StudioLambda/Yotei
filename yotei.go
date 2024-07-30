@@ -31,7 +31,7 @@ var DefaultLogger *slog.Logger = nil
 
 // Creates a new scheduler with the given workers and logger.
 //
-// If workers is `0` or [WorkersNumCPU], the number of CPUs in the machine
+// If workers is `0` or [WorkersNumCPUs], the number of CPUs in the machine
 // is used, as acording to [runtime.NumCPU].
 //
 // If the logger is `nil` or [DefaultLogger], the [slog.Default] will be used.
@@ -39,7 +39,7 @@ var DefaultLogger *slog.Logger = nil
 // # Example
 //
 //	yotei.NewScheduler(
-//		yotei.WorkersNumCPU,
+//		yotei.WorkersNumCPUs,
 //		yotei.DefaultLogger,
 //	)
 func NewScheduler(workers uint64, logger *slog.Logger) *Scheduler {
