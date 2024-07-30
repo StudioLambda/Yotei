@@ -135,18 +135,6 @@ func (tasks Tasks) Weight() uint64 {
 	return total
 }
 
-// LockedWeight returns the sum of all he
-// weights of all the locked tasks in the list.
-func (tasks Tasks) LockedWeight() uint64 {
-	total := uint64(0)
-
-	for _, task := range tasks.Locked() {
-		total += task.Weight()
-	}
-
-	return total
-}
-
 // Unlocked returns the tasks that are unlocked
 func (tasks Tasks) Unlocked() Tasks {
 	unlocked := make(Tasks, 0)

@@ -8,24 +8,6 @@ import "time"
 // on the task's output.
 type Action func(scheduler *Scheduler, task *Task)
 
-func (action Action) Remove() Action {
-	return func(scheduler *Scheduler, task *Task) {
-		scheduler.Remove(task)
-
-		if action != nil {
-			action(scheduler, task)
-		}
-	}
-}
-
-func (action Action) Continue() Action {
-	return func(scheduler *Scheduler, task *Task) {
-		if action != nil {
-			action(scheduler, task)
-		}
-	}
-}
-
 func (action Action) Add(tasks ...*Task) Action {
 	return func(scheduler *Scheduler, task *Task) {
 		scheduler.Add(tasks...)
