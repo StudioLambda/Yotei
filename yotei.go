@@ -119,7 +119,7 @@ func (scheduler *Scheduler) next() *Task {
 		current += task.Weight()
 
 		if pick < current {
-			if task.IsSequential() {
+			if !task.IsConcurrent() {
 				task.Lock()
 			}
 
@@ -138,7 +138,7 @@ func (scheduler *Scheduler) handle(ctx context.Context, task *Task) {
 
 func (scheduler *Scheduler) handleTask(task *Task) {
 	defer func() {
-		if task.IsSequential() {
+		if !task.IsConcurrent() {
 			task.Unlock()
 		}
 	}()

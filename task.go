@@ -28,7 +28,7 @@ type Task struct {
 	weight     atomic.Uint64
 	duration   atomic.Int64
 	locked     atomic.Bool
-	sequential atomic.Bool
+	concurrent atomic.Bool
 }
 
 // A list of actionable tasks
@@ -55,7 +55,7 @@ func NewTask(handler Handler) *Task {
 
 	task.weight.Store(1)
 	task.duration.Store(int64(DurationUnlimited))
-	task.sequential.Store(true)
+	task.concurrent.Store(false)
 
 	return task
 }
@@ -68,14 +68,8 @@ func (task *Task) Unlock() {
 	task.locked.Store(false)
 }
 
-func (task *Task) Sequential() *Task {
-	task.sequential.Store(true)
-
-	return task
-}
-
-func (task *Task) Concurrent() *Task {
-	task.sequential.Store(false)
+func (task *Task) Concurrent(value bool) *Task {
+	task.concurrent.Store(value)
 
 	return task
 }
@@ -84,8 +78,8 @@ func (task *Task) IsLocked() bool {
 	return task.locked.Load()
 }
 
-func (task *Task) IsSequential() bool {
-	return task.sequential.Load()
+func (task *Task) IsConcurrent() bool {
+	return task.concurrent.Load()
 }
 
 func (task *Task) Lasts(duration time.Duration) *Task {
@@ -115,10 +109,10 @@ func (task *Task) Handle(ctx context.Context) Action {
 // String returns a string representation of a task.
 func (task *Task) String() string {
 	return fmt.Sprintf(
-		"Task{weight=%d, duration=%s, is_sequential=%t, is_locked=%t}",
+		"Task{weight=%d, duration=%s, is_concurrent=%t, is_locked=%t}",
 		task.Weight(),
 		task.Duration(),
-		task.IsSequential(),
+		task.IsConcurrent(),
 		task.IsLocked(),
 	)
 }

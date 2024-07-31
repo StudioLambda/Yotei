@@ -35,15 +35,15 @@ func TestThreeTasks(t *testing.T) {
 		yotei.
 			NewTask(counter1).
 			Weights(10).
-			Concurrent(),
+			Concurrent(true),
 		yotei.
 			NewTask(counter2).
 			Weights(20).
-			Concurrent(),
+			Concurrent(true),
 		yotei.
 			NewTask(counter3).
 			Weights(30).
-			Concurrent(),
+			Concurrent(true),
 	}
 
 	scheduler.Add(tasks...)
@@ -84,12 +84,12 @@ func TestItDoesNotRunLockedTasks(t *testing.T) {
 	tasks := yotei.Tasks{
 		yotei.
 			NewTask(counter1).
-			Sequential().
+			Concurrent(false).
 			Weights(10).
 			Lasts(10 * time.Millisecond),
 		yotei.
 			NewTask(counter2).
-			Concurrent().
+			Concurrent(true).
 			Weights(10).
 			Lasts(10 * time.Millisecond),
 	}
