@@ -34,9 +34,8 @@ type Task struct {
 // A list of actionable tasks
 type Tasks []*Task
 
-var (
-	DurationUnlimited time.Duration = 0
-)
+// Determines that the task can take unlimited duration.
+var DurationUnlimited time.Duration = 0
 
 // NewTask creates a new task with the given handler.
 //
