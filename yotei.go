@@ -112,6 +112,11 @@ func (scheduler *Scheduler) next() *Task {
 
 	tasks := scheduler.tasks.Unlocked()
 	weight := tasks.Weight()
+
+	if weight == 0 {
+		return nil
+	}
+
 	pick := rand.Uint64() % weight
 	current := uint64(0)
 

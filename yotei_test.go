@@ -110,3 +110,57 @@ func TestItDoesNotRunLockedTasks(t *testing.T) {
 		)
 	}
 }
+
+func TestSequence(t *testing.T) {
+	scheduler := yotei.NewScheduler(
+		yotei.WorkersNumCPUs,
+		yotei.DefaultLogger,
+	)
+
+	calls := make([]string, 0)
+
+	var lastHandler yotei.HandlerFunc = func(context.Context) yotei.Action {
+		calls = append(calls, "last")
+
+		return yotei.Done()
+	}
+
+	last := yotei.NewTask(lastHandler)
+
+	var nextHandler yotei.HandlerFunc = func(context.Context) yotei.Action {
+		calls = append(calls, "next")
+
+		return yotei.Done().Add(last)
+	}
+
+	next := yotei.NewTask(nextHandler)
+
+	var initialHandler yotei.HandlerFunc = func(context.Context) yotei.Action {
+		calls = append(calls, "initial")
+
+		return yotei.Done().Add(next)
+	}
+
+	initial := yotei.NewTask(initialHandler)
+
+	scheduler.Add(initial)
+	scheduler.Start()
+	time.Sleep(10 * time.Millisecond)
+	scheduler.Stop()
+
+	if expected := 3; len(calls) != expected {
+		t.Fatalf("expected len(calls)=%d but got %d", expected, len(calls))
+	}
+
+	if expected := "initial"; calls[0] != expected {
+		t.Fatalf("expected calls[0]=%s but got %s", expected, calls[0])
+	}
+
+	if expected := "next"; calls[1] != expected {
+		t.Fatalf("expected calls[1]=%s but got %s", expected, calls[1])
+	}
+
+	if expected := "last"; calls[2] != expected {
+		t.Fatalf("expected calls[2]=%s but got %s", expected, calls[2])
+	}
+}
