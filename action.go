@@ -8,13 +8,19 @@ import "time"
 // on the task's output.
 type Action func(scheduler *Scheduler, task *Task)
 
-func (action Action) Add(tasks ...*Task) Action {
-	return func(scheduler *Scheduler, task *Task) {
+func (action Action) ThenAdd(tasks ...*Task) Action {
+	return action.Then(func(scheduler *Scheduler, task *Task) {
 		scheduler.Add(tasks...)
+	})
+}
 
+func (action Action) Then(callback Action) Action {
+	return func(scheduler *Scheduler, task *Task) {
 		if action != nil {
 			action(scheduler, task)
 		}
+
+		callback(scheduler, task)
 	}
 }
 

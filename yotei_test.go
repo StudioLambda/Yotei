@@ -130,7 +130,7 @@ func TestSequence(t *testing.T) {
 	var nextHandler yotei.HandlerFunc = func(context.Context) yotei.Action {
 		calls = append(calls, "next")
 
-		return yotei.Done().Add(last)
+		return yotei.Done().ThenAdd(last)
 	}
 
 	next := yotei.NewTask(nextHandler)
@@ -138,7 +138,7 @@ func TestSequence(t *testing.T) {
 	var initialHandler yotei.HandlerFunc = func(context.Context) yotei.Action {
 		calls = append(calls, "initial")
 
-		return yotei.Done().Add(next)
+		return yotei.Done().ThenAdd(next)
 	}
 
 	initial := yotei.NewTask(initialHandler)
