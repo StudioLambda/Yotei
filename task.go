@@ -5,6 +5,8 @@ import (
 	"fmt"
 	"sync/atomic"
 	"time"
+
+	"github.com/google/uuid"
 )
 
 // Task is the the executionable action in the [Scheduler].
@@ -50,6 +52,9 @@ func NewTask(handler Handler) *Task {
 	task.weight.Store(1)
 	task.duration.Store(int64(DurationUnlimited))
 	task.concurrent.Store(false)
+
+	id, _ := uuid.NewV7()
+	task.id.Store(id.String())
 
 	return task
 }
