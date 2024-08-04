@@ -249,6 +249,13 @@ func (scheduler *Scheduler) IsRunning() bool {
 	return scheduler.ctx != nil
 }
 
+func (scheduler *Scheduler) FindTaskByID(id string) (*Task, bool) {
+	scheduler.mutex.Lock()
+	defer scheduler.mutex.Unlock()
+
+	return scheduler.tasks.FindByID(id)
+}
+
 // String returns a string representation of a scheduler.
 func (scheduler *Scheduler) String() string {
 	scheduler.mutex.Lock()

@@ -7,13 +7,6 @@ import (
 	"time"
 )
 
-// Handler determines an interface of something
-// that can be handled.
-type Handler interface {
-	// Handle is the callback to execute the task action.
-	Handle(context.Context) Action
-}
-
 // Task is the the executionable action in the [Scheduler].
 //
 // A task must:
@@ -21,6 +14,7 @@ type Handler interface {
 //   - Have a weight
 //   - Have a duration
 //   - Be sequential or concurrent
+//   - Have an id
 //
 // Use [NewTask] to create a new task.
 type Task struct {
@@ -29,6 +23,7 @@ type Task struct {
 	duration   atomic.Int64
 	locked     atomic.Bool
 	concurrent atomic.Bool
+	id         atomic.Value
 }
 
 // A list of actionable tasks
@@ -57,6 +52,16 @@ func NewTask(handler Handler) *Task {
 	task.concurrent.Store(false)
 
 	return task
+}
+
+func (task *Task) Idenfified(id string) *Task {
+	task.id.Store(id)
+
+	return task
+}
+
+func (task *Task) ID() string {
+	return task.id.Load().(string)
 }
 
 func (task *Task) Lock() {
@@ -102,6 +107,10 @@ func (task *Task) Weight() uint64 {
 }
 
 func (task *Task) Handle(ctx context.Context) Action {
+	if task.handler == nil {
+		panic("no task handler defined. please ensure the task handler is not nil")
+	}
+
 	return task.handler.Handle(ctx)
 }
 
@@ -152,4 +161,14 @@ func (tasks Tasks) Locked() Tasks {
 	}
 
 	return locked
+}
+
+func (tasks Tasks) FindByID(id string) (*Task, bool) {
+	for _, task := range tasks {
+		if task.ID() == id {
+			return task, true
+		}
+	}
+
+	return nil, false
 }
