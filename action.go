@@ -8,12 +8,17 @@ import "time"
 // on the task's output.
 type Action func(scheduler *Scheduler, task *Task)
 
+// ThenAdd adds the given tasks to the scheduler
+// when the action is run.
 func (action Action) ThenAdd(tasks ...*Task) Action {
 	return action.Then(func(scheduler *Scheduler, task *Task) {
 		scheduler.Add(tasks...)
 	})
 }
 
+// Then adds a new callback that will be executed when the action
+// is run. The callback supports a specific action callback that
+// gets the current scheduler and the executed task.
 func (action Action) Then(callback Action) Action {
 	return func(scheduler *Scheduler, task *Task) {
 		if action != nil {
