@@ -11,7 +11,7 @@ type Action func(scheduler *Scheduler, task *Task)
 // ThenAdd adds the given tasks to the scheduler
 // when the action is run.
 func (action Action) ThenAdd(tasks ...*Task) Action {
-	return action.Then(func(scheduler *Scheduler, task *Task) {
+	return action.Then(func(scheduler *Scheduler, _ *Task) {
 		scheduler.Add(tasks...)
 	})
 }

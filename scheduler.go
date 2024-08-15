@@ -30,7 +30,7 @@ var WorkersNumCPUs uint64 = 0
 // DefaultLogger is the default logger for the yotei scheduler.
 var DefaultLogger *slog.Logger = nil
 
-// Creates a new scheduler with the given workers and logger.
+// NewScheduler creates a new scheduler with the given workers and logger.
 //
 // If workers is `0` or [WorkersNumCPUs], the number of CPUs in the machine
 // is used, as acording to [runtime.NumCPU].
@@ -58,7 +58,7 @@ func NewScheduler(workers uint64, logger *slog.Logger) *Scheduler {
 	}
 }
 
-// Adds a task into the scheduler. If the task
+// Add appends a task into the scheduler. If the task
 // was already in the scheduler it will ignore it.
 func (scheduler *Scheduler) Add(tasks ...*Task) {
 	scheduler.mutex.Lock()
@@ -67,7 +67,7 @@ func (scheduler *Scheduler) Add(tasks ...*Task) {
 	for _, task := range tasks {
 		for _, t := range scheduler.tasks {
 			if t == task {
-				return
+				continue
 			}
 		}
 
@@ -90,7 +90,7 @@ func (scheduler *Scheduler) Has(task *Task) bool {
 	return false
 }
 
-// Removes the given tasks from the scheduler.
+// Remove deletes the given tasks from the scheduler.
 func (scheduler *Scheduler) Remove(tasks ...*Task) {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
@@ -249,11 +249,12 @@ func (scheduler *Scheduler) IsRunning() bool {
 	return scheduler.ctx != nil
 }
 
-func (scheduler *Scheduler) FindTaskByID(id string) (*Task, bool) {
+// Tasks returns the current scheduler tasks.
+func (scheduler *Scheduler) Tasks() Tasks {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
 
-	return scheduler.tasks.FindByID(id)
+	return scheduler.tasks
 }
 
 // String returns a string representation of a scheduler.

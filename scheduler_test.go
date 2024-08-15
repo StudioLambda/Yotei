@@ -11,7 +11,7 @@ import (
 
 type CounterHandler atomic.Uint64
 
-func (counter *CounterHandler) Handle(ctx context.Context) yotei.Action {
+func (counter *CounterHandler) Handle(_ context.Context) yotei.Action {
 	_ = (*atomic.Uint64)(counter).Add(1)
 
 	return yotei.Continue()

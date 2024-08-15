@@ -13,7 +13,7 @@ type Handler interface {
 // into a [Handler].
 type HandlerFunc func(context.Context) Action
 
-// Hande runs the action
+// Handle runs the action
 func (handler HandlerFunc) Handle(ctx context.Context) Action {
 	return handler(ctx)
 }
