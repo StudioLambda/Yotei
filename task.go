@@ -7,37 +7,18 @@ import (
 	"time"
 )
 
-// Task is the the executionable action in the [Scheduler].
+// Task is a sequential task executionable in the [yotei.Scheduler].
 //
-// A task must:
-//   - Be handlable
-//   - Have a weight
-//   - Have a duration
-//   - Be sequential or concurrent
-//   - Have an id
-//
-// Use [NewTask] to create a new task.
+// Use [NewTask] to create a new sequential task.
 type Task struct {
 	handler    Handler
 	weight     atomic.Uint64
 	duration   atomic.Int64
 	locked     atomic.Bool
 	concurrent atomic.Bool
-	id         atomic.Value
 }
 
-// A list of actionable tasks
-type Tasks []*Task
-
-// Determines that the task can take unlimited duration.
-var DurationUnlimited time.Duration = 0
-
-// NewTask creates a new task with the given handler.
-//
-// By default, a task:
-//   - Has a weight of 1
-//   - Has unlimited duration
-//   - Is aequential
+// NewTask creates a new sequential task with the given handler.
 func NewTask(handler Handler) *Task {
 	if handler == nil {
 		panic("no task handler defined. please ensure the task handler is not nil")
@@ -50,19 +31,8 @@ func NewTask(handler Handler) *Task {
 	task.weight.Store(1)
 	task.duration.Store(int64(DurationUnlimited))
 	task.concurrent.Store(false)
-	task.id.Store("")
 
 	return task
-}
-
-func (task *Task) Identified(id string) *Task {
-	task.id.Store(id)
-
-	return task
-}
-
-func (task *Task) ID() string {
-	return task.id.Load().(string)
 }
 
 func (task *Task) Lock() {
@@ -124,52 +94,4 @@ func (task *Task) String() string {
 		task.IsConcurrent(),
 		task.IsLocked(),
 	)
-}
-
-// Weight returns the sum of all he
-// weights of all the tasks in the list.
-func (tasks Tasks) Weight() uint64 {
-	total := uint64(0)
-
-	for _, task := range tasks {
-		total += task.Weight()
-	}
-
-	return total
-}
-
-// Unlocked returns the tasks that are unlocked
-func (tasks Tasks) Unlocked() Tasks {
-	unlocked := make(Tasks, 0)
-
-	for _, task := range tasks {
-		if !task.IsLocked() {
-			unlocked = append(unlocked, task)
-		}
-	}
-
-	return unlocked
-}
-
-// Locked returns the tasks that are locked
-func (tasks Tasks) Locked() Tasks {
-	locked := make(Tasks, 0)
-
-	for _, task := range tasks {
-		if task.IsLocked() {
-			locked = append(locked, task)
-		}
-	}
-
-	return locked
-}
-
-func (tasks Tasks) FindByID(id string) (*Task, bool) {
-	for _, task := range tasks {
-		if task.ID() == id {
-			return task, true
-		}
-	}
-
-	return nil, false
 }

@@ -23,8 +23,8 @@ func (counter *CounterHandler) Count() uint64 {
 
 func TestThreeTasks(t *testing.T) {
 	scheduler := yotei.NewScheduler(
-		yotei.WorkersNumCPUs,
-		yotei.DefaultLogger,
+		yotei.NumCPUsWorkers,
+		yotei.SilentLogger,
 	)
 
 	counter1 := &CounterHandler{}
@@ -74,8 +74,8 @@ func TestThreeTasks(t *testing.T) {
 
 func TestItDoesNotRunLockedTasks(t *testing.T) {
 	scheduler := yotei.NewScheduler(
-		12,
-		yotei.DefaultLogger,
+		yotei.NumCPUsWorkers,
+		yotei.SilentLogger,
 	)
 
 	counter1 := &CounterHandler{}
@@ -113,8 +113,8 @@ func TestItDoesNotRunLockedTasks(t *testing.T) {
 
 func TestSequence(t *testing.T) {
 	scheduler := yotei.NewScheduler(
-		yotei.WorkersNumCPUs,
-		yotei.DefaultLogger,
+		yotei.NumCPUsWorkers,
+		yotei.SilentLogger,
 	)
 
 	calls := make([]string, 0)

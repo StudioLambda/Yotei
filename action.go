@@ -6,12 +6,12 @@ import "time"
 //
 // It allows applying a logic based
 // on the task's output.
-type Action func(scheduler *Scheduler, task *Task)
+type Action func(scheduler *Scheduler, task Tasker)
 
 // ThenAdd adds the given tasks to the scheduler
 // when the action is run.
-func (action Action) ThenAdd(tasks ...*Task) Action {
-	return action.Then(func(scheduler *Scheduler, _ *Task) {
+func (action Action) ThenAdd(tasks ...Tasker) Action {
+	return action.Then(func(scheduler *Scheduler, _ Tasker) {
 		scheduler.Add(tasks...)
 	})
 }
@@ -20,7 +20,7 @@ func (action Action) ThenAdd(tasks ...*Task) Action {
 // is run. The callback supports a specific action callback that
 // gets the current scheduler and the executed task.
 func (action Action) Then(callback Action) Action {
-	return func(scheduler *Scheduler, task *Task) {
+	return func(scheduler *Scheduler, task Tasker) {
 		if action != nil {
 			action(scheduler, task)
 		}
@@ -43,7 +43,7 @@ func Continue() Action {
 // after the duration exceeds but rather that the
 // task will be in the scheduler again after that time.
 func Retry(duration time.Duration) Action {
-	return func(scheduler *Scheduler, task *Task) {
+	return func(scheduler *Scheduler, task Tasker) {
 		scheduler.Remove(task)
 
 		go func() {
@@ -55,7 +55,7 @@ func Retry(duration time.Duration) Action {
 
 // Done removes the task from the scheduler
 func Done() Action {
-	return func(scheduler *Scheduler, task *Task) {
+	return func(scheduler *Scheduler, task Tasker) {
 		scheduler.Remove(task)
 	}
 }

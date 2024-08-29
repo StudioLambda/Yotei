@@ -3,9 +3,12 @@ package yotei
 import (
 	"context"
 	"fmt"
+	"io"
+	"iter"
 	"log/slog"
 	"math/rand"
 	"runtime"
+	"slices"
 	"sync"
 )
 
@@ -25,10 +28,21 @@ type Scheduler struct {
 
 // WorkersNumCPUs uses the number of CPU cores of the computer.
 // as the number of workers.
-var WorkersNumCPUs uint64 = 0
+var (
+	// SingleWorker fires a scheduler with just one worker.
+	SingleWorker uint64 = 1
 
-// DefaultLogger is the default logger for the yotei scheduler.
-var DefaultLogger *slog.Logger = nil
+	// NumCPUsWorkers fires a scheduler with [runtime.NumCPU] workers.
+	NumCPUsWorkers uint64 = uint64(runtime.NumCPU())
+)
+
+var (
+	// DefaultLogger is the default logger for the yotei scheduler.
+	DefaultLogger *slog.Logger = slog.Default()
+
+	// SilentLogger is a silent logger for the yotei scheduler.
+	SilentLogger *slog.Logger = slog.New(slog.NewTextHandler(io.Discard, nil))
+)
 
 // NewScheduler creates a new scheduler with the given workers and logger.
 //
@@ -45,11 +59,11 @@ var DefaultLogger *slog.Logger = nil
 //	)
 func NewScheduler(workers uint64, logger *slog.Logger) *Scheduler {
 	if workers == 0 {
-		workers = uint64(runtime.NumCPU())
+		workers = NumCPUsWorkers
 	}
 
 	if logger == nil {
-		logger = slog.Default()
+		logger = DefaultLogger
 	}
 
 	return &Scheduler{
@@ -60,7 +74,7 @@ func NewScheduler(workers uint64, logger *slog.Logger) *Scheduler {
 
 // Add appends a task into the scheduler. If the task
 // was already in the scheduler it will ignore it.
-func (scheduler *Scheduler) Add(tasks ...*Task) {
+func (scheduler *Scheduler) Add(tasks ...Tasker) {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
 
@@ -77,7 +91,7 @@ func (scheduler *Scheduler) Add(tasks ...*Task) {
 
 // Has returns true if the given task is currently
 // in the scheduler.
-func (scheduler *Scheduler) Has(task *Task) bool {
+func (scheduler *Scheduler) Has(task Tasker) bool {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
 
@@ -91,7 +105,7 @@ func (scheduler *Scheduler) Has(task *Task) bool {
 }
 
 // Remove deletes the given tasks from the scheduler.
-func (scheduler *Scheduler) Remove(tasks ...*Task) {
+func (scheduler *Scheduler) Remove(tasks ...Tasker) {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
 
@@ -104,7 +118,7 @@ func (scheduler *Scheduler) Remove(tasks ...*Task) {
 	}
 }
 
-func (scheduler *Scheduler) next() *Task {
+func (scheduler *Scheduler) next() Tasker {
 	if !scheduler.mutex.TryLock() {
 		return nil
 	}
@@ -136,13 +150,13 @@ func (scheduler *Scheduler) next() *Task {
 	return nil
 }
 
-func (scheduler *Scheduler) handle(ctx context.Context, task *Task) {
+func (scheduler *Scheduler) handle(ctx context.Context, task Tasker) {
 	if action := task.Handle(ctx); action != nil {
 		action(scheduler, task)
 	}
 }
 
-func (scheduler *Scheduler) handleTask(task *Task) {
+func (scheduler *Scheduler) handleTasker(task Tasker) {
 	defer func() {
 		if !task.IsConcurrent() {
 			task.Unlock()
@@ -172,7 +186,7 @@ func (scheduler *Scheduler) worker() {
 			return
 		default:
 			if task := scheduler.next(); task != nil {
-				scheduler.handleTask(task)
+				scheduler.handleTasker(task)
 				continue
 			}
 		}
@@ -249,12 +263,16 @@ func (scheduler *Scheduler) IsRunning() bool {
 	return scheduler.ctx != nil
 }
 
-// Tasks returns the current scheduler tasks.
-func (scheduler *Scheduler) Tasks() Tasks {
+// Snapshot returns the current scheduler tasks as an iterator.
+//
+// When creating the iterator, the actual tasks are freezed
+// from the moment this function called to ensure it
+// is concurrent safe.
+func (scheduler *Scheduler) Snapshot() iter.Seq[Tasker] {
 	scheduler.mutex.Lock()
 	defer scheduler.mutex.Unlock()
 
-	return scheduler.tasks
+	return slices.Values(slices.Clone(scheduler.tasks))
 }
 
 // String returns a string representation of a scheduler.
