@@ -20,3 +20,70 @@ go get github.com/studiolambda/yotei
 ## Documentation
 
 [Official Documentation](https://pkg.go.dev/github.com/studiolambda/yotei)
+
+## Example
+
+```go
+type CounterHandler atomic.Uint64
+
+func (counter *CounterHandler) Handle(_ context.Context) yotei.Action {
+	_ = (*atomic.Uint64)(counter).Add(1)
+
+	return yotei.Continue()
+}
+
+func (counter *CounterHandler) Count() uint64 {
+	return (*atomic.Uint64)(counter).Load()
+}
+
+func TestThreeTasks(t *testing.T) {
+	scheduler := yotei.NewScheduler(
+		yotei.NumCPUsWorkers,
+		yotei.SilentLogger,
+	)
+
+	counter1 := &CounterHandler{}
+	counter2 := &CounterHandler{}
+	counter3 := &CounterHandler{}
+
+	tasks := yotei.Tasks{
+		yotei.
+			NewTask(counter1).
+			Weights(10).
+			Concurrent(true),
+		yotei.
+			NewTask(counter2).
+			Weights(20).
+			Concurrent(true),
+		yotei.
+			NewTask(counter3).
+			Weights(30).
+			Concurrent(true),
+	}
+
+	scheduler.Add(tasks...)
+	scheduler.Start()
+	time.Sleep(2 * time.Millisecond)
+	scheduler.Stop()
+
+	t.Log(tasks[0], "->", counter1.Count())
+	t.Log(tasks[1], "->", counter2.Count())
+	t.Log(tasks[2], "->", counter3.Count())
+
+	if counter1.Count() > counter2.Count() {
+		t.Fatalf(
+			"counter1=%d should not be higher than counter2=%d",
+			counter1.Count(),
+			counter2.Count(),
+		)
+	}
+
+	if counter2.Count() > counter3.Count() {
+		t.Fatalf(
+			"counter2=%d should not be higher than counter3=%d",
+			counter2.Count(),
+			counter3.Count(),
+		)
+	}
+}
+```
